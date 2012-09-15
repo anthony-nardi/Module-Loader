@@ -1,107 +1,127 @@
-moduleLoader = (function (window, document, undefined) {
+moduleLoader = (function (window, document) {
 
-	var returnObject, //api
-		list = [],    //modules
-		queue = [],   //loading modules
-		pending = []; //pending modules (dependencies)
+    'use strict';
 
-	var fn = function (modules) {
-		
-		for (var i = 0, modulesLength = modules.length; i < modulesLength; i += 1) {
-			
-			if (typeof list[modules[i]] === "undefined" && typeof pending[modules[i]] === "undefined") {
-				load(modules[i] + ".js");
-			}
-			
-		}
+        var moduleLoader = (function (window, document, undefined) {
 
-	};
-	
-	returnObject = function (modules) { return fn(modules) };
+            var returnObject,
+                list = [],
+                queue = [],
+                pending = [];
 
-	var load = function (filename) {
-	   
-		var script = document.createElement("script");        
-		script.src = filename;
-		document.getElementsByTagName("head")[0].appendChild(script);
-	
-	}
-	
-	returnObject.list = list;
-	returnObject.queue = queue;
-	returnObject.pending = pending;
-	
-	returnObject.imports = function (name, dependencies, module) {
-		
-		var dependenciesLength = dependencies.length,
-			availableDependencies = [],  //list of the dependencies that have already loaded
-			loaded = undefined;
+            var fn = function (modules) {
+                
+                if (modules) {
 
-		if (list[name] === undefined) {
-			
-			pending[name] = true;
-			
-			if (dependenciesLength) {
+                    for (var i = 0, modulesLength = modules.length; i < modulesLength; i += 1) {
+                        
+                        if (typeof list[modules[i]] === "undefined" && typeof pending[modules[i]] === "undefined") {
+                            load(modules[i] + ".js");
+                        }
+                        
+                    }
+                }
 
-				for (var i = 0; i < dependenciesLength; i += 1) {
-					
-					if (list[dependencies[i]] === undefined) {
-						
-						console.log(name + " waiting for " + dependencies[i])
-						loaded = false;
-						
-						if (queue[dependencies[i]] === undefined) {
-							queue[dependencies[i]] = [];
-						}
+            };
+            
+            returnObject = function (modules) { return fn(modules) };
 
-						queue[dependencies[i]].push([name, dependencies, module]);
-					}
-				
-				}
+            var load = function (filename) {
+               
+                var script = document.createElement("script");        
+                script.src = filename;
+                document.getElementsByTagName("head")[0].appendChild(script);
+            
+            }
+            
+            //queue and pending are here for debugging purposes.
+            returnObject.list = list;
+            returnObject.queue = queue;
+            returnObject.pending = pending;
+            
+            returnObject.imports = function (name, dependencies, module) {
+                
+                var dependenciesLength = dependencies.length,
+                    availableDependencies = [],
+                    loaded = undefined;
 
-				if (loaded === false) {
-					return;
-				} else {
+                if (list[name] === undefined) {
+                    
+                    pending[name] = true;
+                    
+                    if (dependenciesLength) {
 
-					pending[name] = false;
+                        for (var i = 0; i < dependenciesLength; i += 1) {
+                            
+                            if (list[dependencies[i]] === undefined) {
+                                
+                                loaded = false;
+                                
+                                if (queue[dependencies[i]] === undefined) {
+                                    queue[dependencies[i]] = [];
+                                }
 
-					list.push(name);
+                                queue[dependencies[i]].push([name, dependencies, module]);
+                            }
+                        
+                        }
 
-					list[name] = module.apply(null, dependencies);
+                        if (loaded === false) {
+                            return;
+                        } else {
 
-					console.log(name +" loaded.")
+                            dependencies = (function (dependencies) {
+                                
+                                var list = [];
 
-					if (queue[name] && queue[name].length) {
-						for (var i = 0, queueLength = queue[name].length; i < queueLength; i += 1) {
-							returnObject.imports.apply(null, queue[name][i]);
-						}
-					}
-				}
+                                for (var i = 0; i < dependencies.length; i += 1) {
+                                    list.push(returnObject.list[dependencies[i]]);
+                                }
 
-			} else {
+                                return list;
+                            
+                            }(dependencies));
 
-				loaded = true;
+                            console.log(dependencies)
 
-				pending[name] = false;
-				
-				list.push(name);
-				
-				list[name] = module();
-				
-				console.log(name +" loaded.")
-				
-				if (queue[name] && queue[name].length) {
-				
-					for (var i = 0, queueLength = queue[name].length; i < queueLength; i += 1) {
-						returnObject.imports.apply(null, queue[name][i]);
-					}
-				
-				}
-			}
-		}
-	};
+                            pending[name] = false;
 
-	return returnObject;
+                            list.push(name);
+
+                            list[name] = module.apply(null, dependencies);
+
+                            if (queue[name] && queue[name].length) {
+                                for (var i = 0, queueLength = queue[name].length; i < queueLength; i += 1) {
+                                    returnObject.imports.apply(null, queue[name][i]);
+                                }
+                            }
+                        }
+
+                    } else {
+
+                        loaded = true;
+
+                        pending[name] = false;
+                        
+                        list.push(name);
+                        
+                        list[name] = module();
+                        
+                        if (queue[name] && queue[name].length) {
+                        
+                            for (var i = 0, queueLength = queue[name].length; i < queueLength; i += 1) {
+                                returnObject.imports.apply(null, queue[name][i]);
+                            }
+                        
+                        }
+                    }
+                }
+            };
+
+            return returnObject;
+
+        }(window, document));
+
+    return moduleLoader;
 
 }(window, window.document));
-
