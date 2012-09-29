@@ -9,30 +9,45 @@ moduleLoader = (function (window, document) {
                 queue = [],
                 pending = [];
 
-            var fn = function (modules) {
+            var fn = function (dir) {
                 
-                if (modules) {
+                return function (modules) {
+                
+                    if (modules) {
 
-                    for (var i = 0, modulesLength = modules.length; i < modulesLength; i += 1) {
-                        
-                        if (typeof list[modules[i]] === "undefined" && typeof pending[modules[i]] === "undefined") {
-                            load(modules[i] + ".js");
+                        for (var i = 0, modulesLength = modules.length; i < modulesLength; i += 1) {
+                            
+                            if (typeof list[modules[i]] === "undefined" && typeof pending[modules[i]] === "undefined") {
+                                load(modules[i] + ".js", dir);
+                            }
+                            
                         }
-                        
                     }
-                }
 
+                }; 
             };
-            
+
             returnObject = function (modules) { return fn(modules) };
 
-            var load = function (filename) {
+            var load = function (filename, directories) {
                
-                var script = document.createElement("script");        
-                script.src = filename;
-                document.getElementsByTagName("head")[0].appendChild(script);
-            
-            }
+                if (directories) {
+
+                    for (var i = 0; i < directories.length; i += 1) {
+                        var script = document.createElement("script");
+                        script.src = directories[i] + "/" + filename;
+                        console.log("looking for " + filename + " in " + directories[i] + "/");
+                        document.getElementsByTagName("head")[0].appendChild(script);
+                    }
+
+                } else {
+                    
+                    var script = document.createElement("script");        
+                    script.src = filename;
+                    document.getElementsByTagName("head")[0].appendChild(script);
+                
+                }
+            };
             
             //queue and pending are here for debugging purposes.
             returnObject.list = list;
@@ -81,8 +96,6 @@ moduleLoader = (function (window, document) {
                                 return list;
                             
                             }(dependencies));
-
-                            console.log(dependencies)
 
                             pending[name] = false;
 
