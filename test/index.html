@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+<title>Test Module Loader</title>
+<script src="../moduleLoader.js"></script>
+<script>
+	//pass directories to seach to first function
+	//pass modules to load to second function
+	moduleLoader(['.'])(['myModule', 'module1', 'module2']);
+	/*
+		
+		moduleLoader(['.'])(['myModule', 'module1', 'module2']);
+               AND
+  moduleLoader()(['myModule', 'module1', 'module2']);
+		
+		Exactly the same because there are no directories that we are searching.
+
+		Directories do not need an ending slash.
+	
+	*/
+
+</script>
+</head>
+<body></body>
+</html>
