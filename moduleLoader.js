@@ -3,9 +3,10 @@ moduleLoader = (function (window, document, undefined) {
   'use strict';  
 
   var returnObject,
-      list    = [],
-      queue   = [],
-      pending = [];
+      list       = [],
+      queue      = [],
+      pending    = [],
+      allModules = [];
   
   //First function accepts an array of directories to search
   //Second function accepts an array of modules to search
@@ -19,6 +20,7 @@ moduleLoader = (function (window, document, undefined) {
         for (var i = 0, modulesLength = modules.length; i < modulesLength; i += 1) {
           
           if (!list[modules[i]] && !pending[modules[i]]) {
+            allModules.push(modules[i]);
             load(modules[i] + ".js", dir);
           }
           
@@ -32,9 +34,10 @@ moduleLoader = (function (window, document, undefined) {
 
   returnObject = function (dir) { return fn(dir) };
   //queue and pending are properties for debugging purposes.
-  returnObject.list = list;
-  returnObject.queue = queue;
-  returnObject.pending = pending;
+  returnObject.list       = list;
+  returnObject.queue      = queue;
+  returnObject.pending    = pending;
+  returnObject.allModules = allModules;
 
   var load = function (filename, directories) {
      

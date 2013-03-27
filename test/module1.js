@@ -4,7 +4,7 @@ moduleLoader.imports('module1', [], function () {
 		
 		'name': function () {
 	
-			return 'module1';
+			return 'module1';	
 	
 		}
 	
